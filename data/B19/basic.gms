@@ -1,0 +1,10 @@
+** BASIC MODEL OF GATE ASSIGNMENT PROBLEM
+* GROUP 5
+
+SETS
+    K   gates   /G1*G19/
+    F   flights /F1*F20/;
+
+PARAMETERS
+
+VARIABLES
