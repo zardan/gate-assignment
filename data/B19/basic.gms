@@ -2,9 +2,11 @@
 * GROUP 5
 
 SETS
-    K   gates   /G1*G19/
+    K   gates   /G1*G10/
     F   flights /F1*F20/;
 
 PARAMETERS
+
+
 
 VARIABLES
