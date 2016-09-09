@@ -1,0 +1,174 @@
+GAMS 24.6.1  r55820 Released Jan 18, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    09/09/16 15:49:20 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  SETS
+   2      I   'pucks, arc between arrival and departure node' /I1*I10/
+   3      K   'gates' /K1*K3/
+   4      S   'source node'   /S/
+   5      T   'terminal node' /T/
+   6   
+   7  ALIAS(I,J);
+   8   
+   9  PARAMETERS
+  10      t_arr(I)    'arrival time of puck i'
+  11      /I1 11.88
+  12       I2 15.05
+  13       I3 10.96
+  14       I4 16.85
+  15       I5 14.23
+  16       I6 11.55
+  17       I7 13.43
+  18       I8  6.50
+  19       I9  6.83
+  20       I10 7.50/
+  21   
+  22       t_dep(I)   'departing time of puck i'
+  23       /I1 12.75
+  24        I2 16.00
+  25        I3 11.67
+  26        I4 17.67
+  27        I5 15.08
+  28        I6 12.33
+  29        I7 14.50
+  30        I8  7.00
+  31        I9  7.33
+  32        I10 8.00/;
+  33   
+  34  VARIABLES
+  35      X(I,J,K)    'decision varaibles'
+  36      obj;
+  37   
+  38  BINARY VARIABLE X(I,J,K);
+  39   
+  40  EQUATIONS
+  41      puckConstr(I,J,K)       'only straight pucks'
+  42      gateToPuck(I,J)         'have to assign gate to each puck'
+  43      backwardFlow(I,J,K)
+  44      objective;
+  45   
+  46      puckConstr(I,J,K)       $(ord(I) ne ord(J)) .. X(I,J,K) =e= 0;
+  47      gateToPuck(I,J)         $(ord(I) eq ord(J)) .. sum(K, X(I,J,K)) =e= 1;
+  48      backwardFlow(I,J,K)     $(t_dep(J) > t_arr(I)) .. X(J,I,K) =e= 0;
+  49      objective               .. obj =e= 1;
+  50   
+  51  MODEL basic /all/;
+  52   
+  53  SOLVE basic USING MINLP MINIMIZING obj;
+GAMS 24.6.1  r55820 Released Jan 18, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    09/09/16 15:49:20 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+  54   
+  55  **DISPLAY totWork, totTime.l, x.l;
+  56   
+  57   
+  58  ** noFlowToSource(I,S,K)   'no flox back to the source node'
+  59  ** noFlowToSource(I,S,K)   .. X(I,S,K) =e= 0;
+  60   
+  61  ** backwardFlow(I,J,K)     $(t_dep(J) > t_arr(I)) .. X(J,I,K) =e= 0;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.6.1 r55820 DEX-DEG
+GAMS 24.6.1  r55820 Released Jan 18, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    09/09/16 15:49:20 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE basic Using MINLP From line 53
+
+
+---- puckConstr  =E=  only straight pucks
+
+puckConstr(I1,I2,K1)..  X(I1,I2,K1) =E= 0 ; (LHS = 0)
+     
+puckConstr(I1,I2,K2)..  X(I1,I2,K2) =E= 0 ; (LHS = 0)
+     
+puckConstr(I1,I2,K3)..  X(I1,I2,K3) =E= 0 ; (LHS = 0)
+     
+REMAINING 267 ENTRIES SKIPPED
+
+
+---- gateToPuck  =E=  have to assign gate to each puck
+
+gateToPuck(I1,I1)..  X(I1,I1,K1) + X(I1,I1,K2) + X(I1,I1,K3) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+gateToPuck(I2,I2)..  X(I2,I2,K1) + X(I2,I2,K2) + X(I2,I2,K3) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+gateToPuck(I3,I3)..  X(I3,I3,K1) + X(I3,I3,K2) + X(I3,I3,K3) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- backwardFlow  =E=  
+
+backwardFlow(I1,I1,K1)..  X(I1,I1,K1) =E= 0 ; (LHS = 0)
+     
+backwardFlow(I1,I1,K2)..  X(I1,I1,K2) =E= 0 ; (LHS = 0)
+     
+backwardFlow(I1,I1,K3)..  X(I1,I1,K3) =E= 0 ; (LHS = 0)
+     
+REMAINING 177 ENTRIES SKIPPED
+
+
+---- objective  =E=  
+
+objective..  obj =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+GAMS 24.6.1  r55820 Released Jan 18, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    09/09/16 15:49:20 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE basic Using MINLP From line 53
+
+
+---- X  decision varaibles
+
+X(I1,I1,K1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       gateToPuck(I1,I1)
+        1       backwardFlow(I1,I1,K1)
+
+X(I1,I1,K2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       gateToPuck(I1,I1)
+        1       backwardFlow(I1,I1,K2)
+
+X(I1,I1,K3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       gateToPuck(I1,I1)
+        1       backwardFlow(I1,I1,K3)
+
+REMAINING 297 ENTRIES SKIPPED
+
+---- obj  
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objective
+
+GAMS 24.6.1  r55820 Released Jan 18, 2016 DEX-DEG x86 64bit/MacOS X                                                                                                                                                                    09/09/16 15:49:20 Page 5
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE basic Using MINLP From line 53
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS          461
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          301
+NON ZERO ELEMENTS           481     NON LINEAR N-Z              0
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   0     DISCRETE VARIABLES        300
+
+
+
+**** THE MODEL EXCEEDS THE DEMO LIMITS
+**** MAX MATRIX ROWS          300
+**** MAX MATRIX COLUMNS       300
+**** MAX NON ZERO ELEMENTS   2000
+**** MAX NON LINEAR N-Z      1000
+**** MAX DISCRETE VARIABLES    50
+**** Terminated due to a licensing error
+
+     GAMS Development Corporation, Washington, DC   G871201/0000CA-ANY
+     Free Demo,  202-342-0180,  sales@gams.com,  www.gams.com         
+     10511472000S                                                   00
+     01234567000000                                                   
+     DC0000       Ref: Generated by Base            A Demo            
