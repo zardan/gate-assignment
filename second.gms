@@ -6,7 +6,7 @@ SETS
     T   'terminal node' /T/;
 
 SCALAR
-    buffer /0/
+    buffer /0.25/
     gateCost /10/;
 
 PARAMETERS
@@ -84,3 +84,5 @@ EQUATIONS
 MODEL basic /all/;
 
 SOLVE basic USING MINLP MINIMIZING obj;
+
+**
