@@ -3,7 +3,11 @@ SETS
     J   'departure nodes' /J1*J10/
     K   'gates' /K1*K5/
     S   'source node'   /S/
-    T   'terminal node' /T/;
+    T   'terminal node' /T/
+
+    ALIAS(I,I2)
+    ALIAS(J,J2)
+    ALIAS(K,K2);
 
 SCALAR
     buffer      'buffer time for gates to take new pucks'
@@ -44,18 +48,19 @@ PARAMETERS
       /I3 .J5 10/;
 
 VARIABLES
-    Xs(S,I,K)   'dec. var. from source node to arrival node'
-    Xf(I,J,K)   'dec. var. from arrival node to departure node'
-    Xb(J,I,K)   'dec. var. from departure node to arrival node'
-    Xt(J,T,K)   'dec. var. from departure node to termnal node'
-    Xst(S,T,K)  'dec. var. from source node to terminal node'
-    Ind(J,I)    'indicator function. true (1) if possible with flow from J to I'
+    Xs(S,I,K)       'dec. var. from source node to arrival node'
+    Xf(I,J,K)       'dec. var. from arrival node to departure node'
+    Xb(J,I,K)       'dec. var. from departure node to arrival node'
+    Xt(J,T,K)       'dec. var. from departure node to termnal node'
+    Xst(S,T,K)      'dec. var. from source node to terminal node'
+    Ind(J,I)        'indicator function. true (1) if possible with flow from J to I'
+    Y(I,I2,K,K2)    'indicator function for connecting passengers'
 
     gateUtilization     'cost assosiated with gate utilization'
     unconvenienceCost   'cost associates with unconvenience for connecting passengers'
     objective           'total objective';
 
-BINARY VARIABLE Xs(S,I,K), Xf(I,J,K), Xb(J,I,K), Xt(J,T,K), Xst(S,T,K);
+BINARY VARIABLE Xs(S,I,K), Xf(I,J,K), Xb(J,I,K), Xt(J,T,K), Xst(S,T,K), Y(I,I2,K,K2);
 
 EQUATIONS
     sourceOutflow(S,T,K)        'all gates either go directly to terminal or to arrival node'
@@ -69,6 +74,11 @@ EQUATIONS
     backwardFlowTrue(I,J,K)     'backward flow only possible when indicator function nonzero'
     backwardFlowLim(I,J)        'at most one gate per backward flow'
     terminalInflow(S,T,K)       'all gates must come back to terminal'
+
+    connPass1(I,I2,J,J2,K,K2)
+    connPass2(I,I2,J,J2,K,K2)
+    connPass3(I,I2,J,J2,K,K2)
+    connPass4(I,I2,J,J2,K,K2)
 
     objectiveEq                 'total objective'
     gateUtilizationEq           'cost assosiated with gate utilization'
@@ -85,6 +95,11 @@ EQUATIONS
     backwardFlowTrue(I,J,K)     .. Xb(J,I,K) =l= Ind(J,I);
     backwardFlowLim(I,J)        .. sum(K, Xb(J,I,K)) =l= 1;
     terminalInflow(S,T,K)       .. sum(J, Xt(J,T,K)) + Xst(S,T,K) =e= 1;
+
+    connPass1(I,I2,J,J2,K,K2)   .. Y(I,I2,K,K2) - Xf(I,J,K) =l= 0;
+    connPass2(I,I2,J,J2,K,K2)   .. Y(I,I2,K,K2) - Xf(I2,J2,K2) =l= 0;
+    connPass3(I,I2,J,J2,K,K2)   .. Xf(I,J,K) + Xf(I2,J2,K2) - Y(I,I2,K,K2) =l= 1;
+    connPass4(I,I2,J,J2,K,K2)   .. Xf(I,J,K) + Xf(I2,J2,K2) - Y(I,I2,K,K2) =g= 0;
 
     objectiveEq                 .. objective =e= gateUtilization+unconvenienceCost;
     gateUtilizationEq           .. gateUtilization =e= sum((I,K,S), Xs(S,I,K))*gateCost;
