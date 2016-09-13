@@ -41,11 +41,16 @@ PARAMETERS
          J10 8.00/
 
       walk_cost(K,K2)  'cost of walking between gates'
-      /K1 .K2 20,   K1 .K3 10
-                    K2. K3 30/
+      /K1 .K2 20,   K1 .K3 10,  K1 .K4 10,  K1 .K5 20
+                    K2 .K3 10,  K2 .K4 10,  K2 .K5 20
+                                K3 .K4 10,  K3 .K5 20
+                                            K4 .K5 20/
 
       no_conn_pass(I,I2) 'number of connecting passengers between flight I and flight J'
-      /I3 .I5 10/;
+      /I3 .I5 10,    I3 . I2 20
+       I4 .I7 20/;
+
+      walk_cost(K,K2)$(ord(K) gt ord (K2)) = walk_cost(K2,K);
 
 VARIABLES
     Xs(S,I,K)       'dec. var. from source node to arrival node'
@@ -54,13 +59,12 @@ VARIABLES
     Xt(J,T,K)       'dec. var. from departure node to termnal node'
     Xst(S,T,K)      'dec. var. from source node to terminal node'
     Ind(J,I)        'indicator function. true (1) if possible with flow from J to I'
-    Y(I,I2,K,K2)    'indicator function for connecting passengers'
 
     gateUtilization     'cost assosiated with gate utilization'
     unconvenienceCost   'cost associates with unconvenience for connecting passengers'
     objective           'total objective';
 
-BINARY VARIABLE Xs(S,I,K), Xf(I,J,K), Xb(J,I,K), Xt(J,T,K), Xst(S,T,K), Y(I,I2,K,K2);
+BINARY VARIABLE Xs(S,I,K), Xf(I,J,K), Xb(J,I,K), Xt(J,T,K), Xst(S,T,K);
 
 EQUATIONS
     sourceOutflow(S,T,K)        'all gates either go directly to terminal or to arrival node'
@@ -74,11 +78,6 @@ EQUATIONS
     backwardFlowTrue(I,J,K)     'backward flow only possible when indicator function nonzero'
     backwardFlowLim(I,J)        'at most one gate per backward flow'
     terminalInflow(S,T,K)       'all gates must come back to terminal'
-
-    connPass1(I,I2,J,J2,K,K2)
-    connPass2(I,I2,J,J2,K,K2)
-    connPass3(I,I2,J,J2,K,K2)
-    connPass4(I,I2,J,J2,K,K2)
 
     objectiveEq                 'total objective'
     gateUtilizationEq           'cost assosiated with gate utilization'
@@ -96,17 +95,10 @@ EQUATIONS
     backwardFlowLim(I,J)        .. sum(K, Xb(J,I,K)) =l= 1;
     terminalInflow(S,T,K)       .. sum(J, Xt(J,T,K)) + Xst(S,T,K) =e= 1;
 
-    connPass1(I,I2,J,J2,K,K2)   .. Y(I,I2,K,K2) - Xf(I,J,K) =l= 0;
-    connPass2(I,I2,J,J2,K,K2)   .. Y(I,I2,K,K2) - Xf(I2,J2,K2) =l= 0;
-    connPass3(I,I2,J,J2,K,K2)   .. Xf(I,J,K) + Xf(I2,J2,K2) - Y(I,I2,K,K2) =l= 1;
-    connPass4(I,I2,J,J2,K,K2)   .. Xf(I,J,K) + Xf(I2,J2,K2) - Y(I,I2,K,K2) =g= 0;
-
     objectiveEq                 .. objective =e=  gateUtilization + unconvenienceCost;
     gateUtilizationEq           .. gateUtilization =e= sum((S,I,K), gateCost*Xs(S,I,K));
-    unconvenienceCostEq         .. unconvenienceCost =e= sum((I,I2,K,K2),walk_cost(K,K2)*no_conn_pass(I,I2)*Y(I,I2,K,K2));
+    unconvenienceCostEq         .. unconvenienceCost =e= sum((I,I2,J,J2,K,K2), walk_cost(K,K2)*no_conn_pass(I,I2)*Xf(I,J,K)*Xf(I2,J2,K2));
 
 MODEL basic /all/;
 
 SOLVE basic USING MINLP MINIMIZING objective;
-
-DISPLAY Y.l;
