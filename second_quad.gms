@@ -1,7 +1,7 @@
 SETS
     I   arrival nodes /I1*I10/
     J   'departure nodes' /J1*J10/
-    K   'gates' /K1*K5/
+    K   'gates' /K1*K6/
     S   'source node'   /S/
     T   'terminal node' /T/
 
@@ -12,8 +12,12 @@ SETS
 SCALAR
     buffer      'buffer time for gates to take new pucks'
         /0.25/
-    gateCost    'cost for using one gate for one day'
-        /100/;
+    gate_cost   'cost for using one gate for one day'
+        /100/
+    walk_cost   'cost for walking at a higher speed'
+        /50/
+    alpha       'weight on multiobjective function'
+        /0.8/;
 
 PARAMETERS
     t_arr(I)    'arrival time of puck I'
@@ -40,17 +44,22 @@ PARAMETERS
          J9  7.33
          J10 8.00/
 
-      walk_cost(K,K2)  'cost of walking between gates'
-      /K1 .K2 20,   K1 .K3 10,  K1 .K4 10,  K1 .K5 20
-                    K2 .K3 10,  K2 .K4 10,  K2 .K5 20
-                                K3 .K4 10,  K3 .K5 20
-                                            K4 .K5 20/
+      walk_dist(K,K2)  'cost of walking between gates'
+      /K1 .K2 10,   K1 .K3 20,  K1 .K4 22,  K1 .K5 40,  K1 .K6 41
+                    K2 .K3 22,  K2 .K4 20,  K2 .K5 41,  K2 .K6 40
+                                K3 .K4 10,  K3 .K5 20,  K3 .K6 22
+                                            K4 .K5 22,  K4 .K6 20
+                                                        K5 .K6 10/
 
       no_conn_pass(I,I2) 'number of connecting passengers between flight I and flight J'
-      /I3 .I5 10,    I3 . I2 20
-       I4 .I7 20/;
+      /I3 .I5 10, I3 .I2 20
+       I7 .I2 20, I7 .I4 10, I7 .I5 10/
 
-      walk_cost(K,K2)$(ord(K) gt ord (K2)) = walk_cost(K2,K);
+      t_diff(I,J)       'time between flights';
+      t_diff(I,J) = t_dep(J)-t_arr(I);
+
+      walk_dist(K,K2)$(ord(K) gt ord (K2)) = walk_dist(K2,K);
+
 
 VARIABLES
     Xs(S,I,K)       'dec. var. from source node to arrival node'
@@ -95,9 +104,9 @@ EQUATIONS
     backwardFlowLim(I,J)        .. sum(K, Xb(J,I,K)) =l= 1;
     terminalInflow(S,T,K)       .. sum(J, Xt(J,T,K)) + Xst(S,T,K) =e= 1;
 
-    objectiveEq                 .. objective =e=  gateUtilization + unconvenienceCost;
-    gateUtilizationEq           .. gateUtilization =e= sum((S,I,K), gateCost*Xs(S,I,K));
-    unconvenienceCostEq         .. unconvenienceCost =e= sum((I,I2,J,J2,K,K2), walk_cost(K,K2)*no_conn_pass(I,I2)*Xf(I,J,K)*Xf(I2,J2,K2));
+    objectiveEq                 .. objective =e=  (1-alpha)*gateUtilization + alpha*unconvenienceCost;
+    gateUtilizationEq           .. gateUtilization =e= sum((S,I,K), gate_cost*Xs(S,I,K));
+    unconvenienceCostEq         .. unconvenienceCost =e= sum((I,I2,J,J2,K,K2), walk_cost*(walk_dist(K,K2)/t_diff(I,J2))*no_conn_pass(I,I2)*Xf(I,J,K)*Xf(I2,J2,K2));
 
 MODEL basic /all/;
 
